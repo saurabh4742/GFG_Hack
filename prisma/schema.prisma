@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid()) @map("_id")
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model User {
+  id            String    @id @default(uuid()) @map("_id")
+  name          String?
+  password      String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  imageKey      String?
+  accounts      Account[]
+  mentalHealthResponses MentalHealthResponse[]
+  conversationHistory      ConversationHistory[]
+}
+model ConversationHistory {
+  id          String   @id @default(uuid()) @map("_id")
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id])
+  question    String
+  response    String
+  timestamp   DateTime @default(now())
+}
+model MentalHealthResponse {
+  id        String  @id @default(uuid()) @map("_id")
+  userId    String   @map("user_id")
+  timestamp DateTime @default(now()) 
+   used                      Boolean @default(false)
+  emotionalState           Int  
+  motivationLevel          Int 
+  connectedness            Int  
+  positivityAboutFuture    Int  
+  hopefulnessForImprovement Int 
+
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
